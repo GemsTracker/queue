@@ -31,8 +31,14 @@ class ModuleSubscriber implements EventSubscriberInterface
         $menu = $event->getMenu();
         $translateAdapter = $event->getTranslatorAdapter();
 
-        /*$indexPage = $menu->findController('index', 'login');
-        $indexPage->addPage($translateAdapter->_('Login by key'), 'pr.nologin', 'login-by-key', 'index');*/
+        $menu->addPage(null, 'pr.queue.next', 'queue', 'next');
+
+        $setup = $this->findController('database')->getParent();
+
+        $queue = $setup->addPage($translateAdapter->_('Task queue'), 'pr.queue', 'queue', 'index');
+        $show = $queue->addShowAction();
+        //$run = $show->addPage($this->_('Run item'), 'pr.queue.run', 'queue', 'run-queue-item');
+        //$run->setModelParameters(1);
     }
 
     public function getDatabasePaths(GetDatabasePaths $event)
