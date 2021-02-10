@@ -34,7 +34,7 @@ class QueueController extends \Gems_Controller_ModelSnippetActionAbstract
 
     protected function createModel($detailed, $action)
     {
-        $model = new \MUtil_Model_TableModel(\Pulse\Batch\Stack\DatabaseStack::$databaseTable);
+        $model = new \MUtil_Model_TableModel(\Gems\Queue\Batch\Stack\DatabaseStack::$databaseTable);
 
         $model->set('gbq_id_batch', [
             'label' => $this->_('Batch ID'),
@@ -68,20 +68,20 @@ class QueueController extends \Gems_Controller_ModelSnippetActionAbstract
         $batchId = $request->getParam('batch-id');
 
         if ($batchId === null) {
-            $batchId = \Pulse\Queue\Queue::DEFAULT_QUEUE_ID;
+            $batchId = \Gems\Queue\Queue::DEFAULT_QUEUE_ID;
         }
 
-        $stack = new \Pulse\Batch\Stack\DatabaseStack($batchId, $this->currentUser->getUserId());
+        $stack = new \Gems\Queue\Batch\Stack\DatabaseStack($batchId, $this->currentUser->getUserId());
         if (!$stack->hasNext()) {
-            echo "I will sleep!";
-            sleep(1);
+            //echo "I will sleep!";
+            sleep(30);
         }
 
         // Only run one!
-        $store = new \Pulse\Batch\Store\ClassBatchStore();
+        $store = new \Gems\Queue\Batch\Store\ClassBatchStore();
         $store->incrementStepCount();
 
-        $batch = new \Pulse\Task\StoreTaskRunnerBatch($batchId, $stack, $store);
+        $batch = new \Gems\Queue\Task\StoreTaskRunnerBatch($batchId, $stack, $store);
         $this->loader->applySource($batch);
 
         $batch->autoStart = true;
@@ -90,7 +90,7 @@ class QueueController extends \Gems_Controller_ModelSnippetActionAbstract
 
     protected function getTaskRunnerBatch($id)
     {
-        $stack = new \Pulse\Batch\Stack\DatabaseStack($id, $this->currentUser->getUserId());
+        $stack = new \Gems\Queue\Batch\Stack\DatabaseStack($id, $this->currentUser->getUserId());
 
         return new \Gems_Task_TaskRunnerBatch($id, $stack);
     }
@@ -103,7 +103,7 @@ class QueueController extends \Gems_Controller_ModelSnippetActionAbstract
         $writer = new Zend_Log_Writer_Stream(GEMS_ROOT_DIR . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'queue-listener.log');
         $listenLogger = new \Zend_Log($writer);
 
-        $listener = new \Pulse\Queue\Listener($listenLogger);
+        $listener = new \Gems\Queue\Listener($listenLogger);
         $listener->listen();
     }
 }
