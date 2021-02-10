@@ -4,7 +4,6 @@ namespace Gems\Queue;
 
 
 use Symfony\Component\Process\Process;
-use Symfony\Component\Process\ProcessUtils;
 use Symfony\Component\Process\PhpExecutableFinder;
 
 class Listener
@@ -34,6 +33,8 @@ class Listener
 
     protected $processIdleTimeout = 60;
 
+    protected $rootDir;
+
     /**
      * The amount of seconds to wait before polling the queue.
      *
@@ -44,9 +45,10 @@ class Listener
     protected $sleepAfterError = 60;
 
 
-    public function __construct(\Zend_Log $log, $options=null)
+    public function __construct(\Zend_Log $log, $options = null)
     {
         $this->log = $log;
+        $this->setOptions($options);
         $this->setActivateFileLocation();
         $this->processCommand = $this->buildCommand();
     }
@@ -74,8 +76,7 @@ class Listener
 
     public function getRootDir()
     {
-        $rootDir = GEMS_ROOT_DIR;
-        return $rootDir;
+        return $this->rootDir;
     }
 
     public function listen()
@@ -100,7 +101,7 @@ class Listener
     /**
      * Determine if the memory limit has been exceeded.
      *
-     * @param  int  $memoryLimit
+     * @param int $memoryLimit
      * @return bool
      */
     public function memoryExceeded()
@@ -114,7 +115,7 @@ class Listener
             try {
                 $process->run();
                 echo $process->getOutput();
-            } catch(\Exception $e) {
+            } catch (\Exception $e) {
                 $this->log->err(sprintf('The process \'%s\' failed!: ', $this->processCommand, $e->getMessage()));
             }
             if (!$process->isSuccessful()) {
@@ -141,6 +142,7 @@ class Listener
      */
     public function isActive()
     {
+        echo "\n" . $this->getActivateFileLocation();
         if (file_exists($this->getActivateFileLocation())) {
             return true;
         }
@@ -163,13 +165,25 @@ class Listener
      * @param boolean $forceUpdate
      * @return void
      */
-    protected function setActivateFileLocation($forceUpdate=false)
+    protected function setActivateFileLocation($forceUpdate = false)
     {
         if ($forceUpdate === true || !$this->activateFileLocation) {
 
             $rootDir = $this->getRootDir();
             $filename = 'queue.test';
             $this->activateFileLocation = $rootDir . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'settings' . DIRECTORY_SEPARATOR . $filename;
+        }
+    }
+
+    public function setOptions($options = null)
+    {
+        if (isset($options['rootDir'])) {
+            $this->rootDir = $options['rootDir'];
+        } elseif(defined('GEMS_ROOT_DIR')) {
+            $this->rootDir = GEMS_ROOT_DIR;
+        } else {
+            // Assume composer vendor installation
+            $this->rootDir = __DIR__ . '/../../../../';
         }
     }
 

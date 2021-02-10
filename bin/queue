@@ -11,7 +11,7 @@ $autoloaded = false;
 foreach ($files as $file) {
     if (is_file($file)) {
         require_once $file;
-        $rootDir = dir(dir($file));
+        $rootDir = dirname($file) . DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR;
         $autoloaded = true;
     }
 }
@@ -23,5 +23,5 @@ if (null === $argv) {
 $writer = new Zend_Log_Writer_Stream($rootDir . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'queue-listener.log');
 $listenLogger = new \Zend_Log($writer);
 
-$listener = new Gems\Queue\Listener($listenLogger);
+$listener = new Gems\Queue\Listener($listenLogger, ['rootDir' => $rootDir]);
 $listener->listen();

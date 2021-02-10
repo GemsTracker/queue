@@ -16,3 +16,7 @@ Project to add queue items to the database and process them from a daemon worker
 ## Bin
 The composer package installs a bin file in ```vendor/bin/queue``` that you can use to start the listener
 
+The listener will not run any processes until it finds a file named ```queue.test``` in /var/settings.
+Removing this file will halt the queue, without the need to stop the worker.
+
+
