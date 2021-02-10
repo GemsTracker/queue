@@ -1,0 +1,27 @@
+#!/usr/bin/env php
+<?php
+
+set_time_limit(0);
+
+$files = [
+    __DIR__ . '/../../../autoload.php', // composer dependency
+    __DIR__ . '/../vendor/autoload.php', // stand-alone package
+];
+$autoloaded = false;
+foreach ($files as $file) {
+    if (is_file($file)) {
+        require_once $file;
+        $rootDir = dir(dir($file));
+        $autoloaded = true;
+    }
+}
+
+if (null === $argv) {
+    $argv = $_SERVER['argv'];
+}
+
+$writer = new Zend_Log_Writer_Stream($rootDir . DIRECTORY_SEPARATOR . 'var' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . 'queue-listener.log');
+$listenLogger = new \Zend_Log($writer);
+
+$listener = new Gems\Queue\Listener($listenLogger);
+$listener->listen();
